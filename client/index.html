@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Smart General</title>
+</head>
+<body>
+    <div class="statusPanel">
+        <div class="playerOneStatus">
+            Player 1
+            <div class="connected">Połączono: <span></span></div>
+            <div class="ready">Gotowy: <span></span></div>
+        </div>
+        <div class="title">
+            Smart General
+            <p id="message"></p>
+        </div>
+        <div class="playerTwoStatus">
+            Player 2
+            <div class="connected">Połączono: <span></span></div>
+            <div class="ready">Gotowy: <span></span></div>
+        </div>
+    </div>
+    <div class="gamePanel">
+        <div class="playerPanel">
+            Player panel <br>
+            <button id="readyBtn" onclick="setReady()">Gotowy</button><br>
+            <span id="funds">Fundusze: <span id="fundsValue"></span> $</span>
+            <span id="moveInfo">Pozostałe operacje: <span id="moveNum">0</span></span>
+            <span id="turnInfo"><span id="yourTurn">Twoja tura</span> <span id="enemyTurn">Tura przeciwnika</span></span><br>
+            <span id="buyUnitsBlock"><button id="buyUnitsBtn" onclick="" disabled>Kup jednostki</button><span><input id="buyAmount" type="number" min="1" value="1" disabled></span></span>
+            <span id="moveUnitsBlock"><button id="moveUnitsBtn" disabled>Przenieś jednostki</button><span><input id="moveAmount" type="number" min="1" value="1" disabled></span></span>
+            <button id="buyBaseBtn" disabled>Kup bazę</button>
+        </div>
+        <div class="map">
+            <div class="area"><span id="units0">0</span><span id="base0" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units1">0</span><span id="base1" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units2">0</span><span id="base2" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units3">0</span><span id="base3" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units4">0</span><span id="base4" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units5">0</span><span id="base5" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units6">0</span><span id="base6" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units7">0</span><span id="base7" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units8">0</span><span id="base8" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units9">0</span><span id="base9" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units10">0</span><span id="base10" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units11">0</span><span id="base11" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units12">0</span><span id="base12" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units13">0</span><span id="base13" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units14">0</span><span id="base14" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units15">0</span><span id="base15" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units16">0</span><span id="base16" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units17">0</span><span id="base17" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units18">0</span><span id="base18" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units19">0</span><span id="base19" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units20">0</span><span id="base20" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units21">0</span><span id="base21" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units22">0</span><span id="base22" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units23">0</span><span id="base23" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units24">0</span><span id="base24" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units25">0</span><span id="base25" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units26">0</span><span id="base26" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units27">0</span><span id="base27" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units28">0</span><span id="base28" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units29">0</span><span id="base29" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units30">0</span><span id="base30" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units31">0</span><span id="base31" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units32">0</span><span id="base32" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units33">0</span><span id="base33" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units34">0</span><span id="base34" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units35">0</span><span id="base35" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units36">0</span><span id="base36" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units37">0</span><span id="base37" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units38">0</span><span id="base38" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units39">0</span><span id="base39" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units40">0</span><span id="base40" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units41">0</span><span id="base41" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units42">0</span><span id="base42" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units43">0</span><span id="base43" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units44">0</span><span id="base44" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units45">0</span><span id="base45" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units46">0</span><span id="base46" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units47">0</span><span id="base47" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units48">0</span><span id="base48" style="display: table; margin: auto;">BASE_IMG</span></div>
+            <div class="area"><span id="units49">0</span><span id="base49" style="display: table; margin: auto;">BASE_IMG</span></div>
+        </div>
+    </div>
+    <!-- <script src="game.js"></script> -->
+</body>
+</html>

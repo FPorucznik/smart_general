@@ -1,0 +1,69 @@
+body {
+    margin: auto;
+}
+
+.statusPanel {
+    width: 100%;
+    height: 100px;
+    background-color: grey;
+    text-align: center;
+}
+
+.gamePanel {
+    width: 100%;
+    height: 800px;
+    background-color: goldenrod;
+    text-align: center;
+}
+
+.playerOneStatus {
+    float: left;
+    width: 10%;
+    margin-left: 5%;
+}
+
+.playerPanel {
+    width: 100%;
+    border: 1px solid black;
+    height: 100px;
+}
+
+.map {
+    font-size: 0;
+    margin-left: 10%;
+    margin-right: 10%;
+    margin-top: 2%;
+    width: 80%;
+    height: 500px;
+    cursor: pointer;
+}
+
+.map > div {
+    background: #144703;
+    height: 100px;
+    width: 10%;
+    color: black;
+    font-size: 20px;
+    border: 1px solid black;
+    display: inline-block;
+    box-sizing: border-box;
+    transition: transform .2s;
+}
+
+/*
+.map > div:hover {
+    box-shadow: 0px 0px 7px 7px #000000;
+    transform: scale(1.1); 
+}*/
+
+.playerTwoStatus {
+    float: right;
+    width: 10%;
+    margin-right: 5%;
+}
+
+.title {
+    float: left;
+    width: 70%;
+    margin: auto;
+}
