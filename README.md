@@ -1,2 +1,19 @@
-# ipp_filip_porucznik_2021
-Indywidualny projekt programistyczny
+# Smart General
+
+## Etapy tworzenia projektu
+
+**Klient**
+
+ - [x] Stworzenie podstawowego layout'u elementów na stronie **29.03**
+ - [x] Stworzenie mapy **12.04**
+ - [ ] Opracowanie podstawowej logiki gry **12.04**
+ - [ ] Stworzenie grafik do gry **19.04**
+ 
+ **Serwer**
+ 
+ - [ ] Stworzenie podstaw serwera i obsługa połączeń graczy **3.05**
+ - [ ] Integracja stworzonej gry z serwerem **24.05**
+ 
+ **Dodatkowo**
+ 
+ - [ ] Szlify wizualne oraz testowanie i naprawa ewentualnych bugów **8.06**
