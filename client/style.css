@@ -67,3 +67,8 @@ body {
     width: 70%;
     margin: auto;
 }
+
+#icon {
+    width: 50px;
+    height: 50px;
+}

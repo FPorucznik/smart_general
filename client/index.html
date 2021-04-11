@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <title>Smart General</title>
+    <!-- <script src="/socket.io/socket.io.js"></script>> -->
 </head>
 <body>
     <div class="statusPanel">
@@ -26,7 +27,7 @@
     <div class="gamePanel">
         <div class="playerPanel">
             Player panel <br>
-            <button id="readyBtn" onclick="setReady()">Gotowy</button><br>
+            <button id="readyBtn" onclick="setReady()">Ready</button><br>
             <span id="funds">Fundusze: <span id="fundsValue"></span> $</span>
             <span id="moveInfo">Pozostałe operacje: <span id="moveNum">0</span></span>
             <span id="turnInfo"><span id="yourTurn">Twoja tura</span> <span id="enemyTurn">Tura przeciwnika</span></span><br>
@@ -87,6 +88,6 @@
             <div class="area"><span id="units49">0</span><span id="base49" style="display: table; margin: auto;">BASE_IMG</span></div>
         </div>
     </div>
-    <!-- <script src="game.js"></script> -->
+    <script src="game.js"></script>
 </body>
 </html>
