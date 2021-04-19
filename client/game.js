@@ -41,8 +41,8 @@ function setMap(){
     document.getElementById("units29").innerHTML = 1000;
     document.getElementById("units29").style.background = "#FD7A7A";
 
-    areas[20].style.background = "green";
-    areas[29].style.background = "red";
+    areas[20].style.backgroundColor = "rgba(35, 165, 33, 0.5)";
+    areas[29].style.backgroundColor = "rgba(255, 0, 0, 0.5)";
 
     document.getElementById("moveNum").innerHTML = playerOneOperations;
     

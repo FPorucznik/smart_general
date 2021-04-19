@@ -5,11 +5,16 @@ body {
 .statusPanel {
     width: 100%;
     height: 100px;
-    background-color: grey;
+    color: white;
     text-align: center;
+    background-image: url("assets/title.png");
+    font-family: 'Stardos Stencil', cursive;
 }
 
 .gamePanel {
+    background-image: url("assets/background_main.png");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
     width: 100%;
     height: 800px;
     background-color: goldenrod;
@@ -23,12 +28,21 @@ body {
 }
 
 .playerPanel {
+    background-image: url("assets/controlPanel.png");
+    background-size: 100% 140px;
     width: 100%;
     border: 1px solid black;
-    height: 100px;
+    height: 140px;
+    box-shadow: 0px 15px 15px -6px #000000;
+    color: white;
+    font-family: 'Stardos Stencil', cursive;
+    font-size: 25px;
 }
 
 .map {
+    background-image: url("assets/terrain.png");
+    background-size: 100% 500px;
+    background-repeat: no-repeat;
     font-size: 0;
     margin-left: 10%;
     margin-right: 10%;
@@ -36,13 +50,14 @@ body {
     width: 80%;
     height: 500px;
     cursor: pointer;
+    border: 2px solid black;
+    box-shadow: 0px 0px 15px 6px #000000;
 }
 
 .map > div {
-    background: #144703;
     height: 100px;
     width: 10%;
-    color: black;
+    color: white;
     font-size: 20px;
     border: 1px solid black;
     display: inline-block;
@@ -71,4 +86,8 @@ body {
 #icon {
     width: 50px;
     height: 50px;
+}
+
+#funds, #moveInfo {
+    padding-right: 30px;
 }
