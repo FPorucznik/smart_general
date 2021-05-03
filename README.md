@@ -11,7 +11,7 @@
  
  **Serwer**
  
- - [ ] Stworzenie podstaw serwera i obsługa połączeń graczy **3.05**
+ - [x] Stworzenie podstaw serwera i obsługa połączeń graczy **3.05**
  - [ ] Integracja stworzonej gry z serwerem **24.05**
  
  **Dodatkowo**
