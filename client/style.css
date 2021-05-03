@@ -91,3 +91,8 @@ body {
 #funds, #moveInfo {
     padding-right: 30px;
 }
+
+#readyIcon , #notReadyIcon {
+    width: 20x;
+    height: 15px;
+}

@@ -1,13 +1,4 @@
-/*
-var socket = io();
-socket.on('player-index', num => {
-    console.log(num);
-    if(parseInt(num) == -1){
-        document.getElementById("readyBtn").disabled = true;
-        window.location = "lobby.html";
-    }
-});
-*/
+
 var areas = document.querySelectorAll(".area");
 var ready = false;
 var map = document.querySelector(".map");
@@ -24,10 +15,90 @@ var playerTurn = 0;
 var selectedAreaNum = 0;
 var availableAreas = [];
 
+//handle initial player connections
+var socket = io();
+var playerId;
+socket.on('player-index', index => {
+    console.log(index);
+    playerId = index;
+    if(parseInt(index) == -1){
+        document.getElementById("readyBtn").disabled = true;
+        window.location = "lobby.html";
+    }
+});
+
+socket.on('player-connection', (connectedPlayers, playersReady) => {
+    //console.log(index);
+    setConnectionStatus(connectedPlayers, playersReady);
+});
+
+socket.on('player-disconnect', connectedPlayers => {
+    //console.log(index);
+    setDisconnectionStatus(connectedPlayers);
+});
+
+//set ready icons
+socket.on('player-ready' , playersReady => {
+    setReadyStatus(playersReady);
+});
+
+//two functions below that change visuals depending on connection or disconnection
+function setConnectionStatus(connectedPlayers, playersReady){
+    if(connectedPlayers[0] == 0){
+        if(playersReady[1] == false){
+            document.getElementById("playerTwoStatusIconReady").innerHTML = "<img src='assets/notReady.png' id='notReadyIcon'>";
+        }
+        else{
+            document.getElementById("playerTwoStatusIconReady").innerHTML = "<img src='assets/ready.png' id='readyIcon'>";
+        }
+        document.getElementById("playerOneStatusIconConnection").innerHTML = "<img src='assets/ready.png' id='readyIcon'>";
+        document.getElementById("playerOneStatusIconReady").innerHTML = "<img src='assets/notReady.png' id='notReadyIcon'>";
+    }
+    else if(connectedPlayers[0] == null){
+        document.getElementById("playerOneStatusIconConnection").innerHTML = "<img src='assets/notReady.png' id='notReadyIcon'>";
+        document.getElementById("playerOneStatusIconReady").innerHTML = "<img src='assets/notReady.png' id='notReadyIcon'>";
+    }
+    if(connectedPlayers[1] == 1){
+        if(playersReady[0] == false){
+            document.getElementById("playerOneStatusIconReady").innerHTML = "<img src='assets/notReady.png' id='notReadyIcon'>";
+        }
+        else{
+            document.getElementById("playerOneStatusIconReady").innerHTML = "<img src='assets/ready.png' id='readyIcon'>";
+        }
+        document.getElementById("playerTwoStatusIconConnection").innerHTML = "<img src='assets/ready.png' id='readyIcon'>";
+    }
+    else if(connectedPlayers[1] == null){
+        document.getElementById("playerTwoStatusIconReady").innerHTML = "<img src='assets/notReady.png' id='notReadyIcon'>";
+        document.getElementById("playerTwoStatusIconConnection").innerHTML = "<img src='assets/notReady.png' id='notReadyIcon'>";
+    }
+}
+
+function setDisconnectionStatus(connectedPlayers){
+    if(connectedPlayers[0] == null){
+        document.getElementById("playerOneStatusIconConnection").innerHTML = "<img src='assets/notReady.png' id='notReadyIcon'>";
+        document.getElementById("playerOneStatusIconReady").innerHTML = "<img src='assets/notReady.png' id='notReadyIcon'>";
+    }
+    if(connectedPlayers[1] == null){
+        document.getElementById("playerTwoStatusIconConnection").innerHTML = "<img src='assets/notReady.png' id='notReadyIcon'>";
+        document.getElementById("playerTwoStatusIconReady").innerHTML = "<img src='assets/notReady.png' id='notReadyIcon'>";
+    }
+}
+
+//update ready status icons
+function setReadyStatus(playersReady){
+    if(playersReady[0] == true){
+        document.getElementById("playerOneStatusIconReady").innerHTML = "<img src='assets/ready.png' id='readyIcon'>";
+    }
+    if(playersReady[1] == true){
+        document.getElementById("playerTwoStatusIconReady").innerHTML = "<img src='assets/ready.png' id='readyIcon'>";
+    }
+}
+
 function setReady(){
-    ready = true;
+    socket.emit('playerReady', playerId);
+    //ready = true;
     document.getElementById("readyBtn").disabled = true;
-    setMap();
+    //setMap(); --> move logic to server soon
 }
 
 function setMap(){
@@ -70,10 +141,10 @@ function setMap(){
     playerTurn = Math.round(Math.random());
 
     if(playerTurn == 0) {
-        document.getElementById("yourTurn").style.fontWeight = "bold";
+        document.getElementById("yourTurn").style.textDecoration = "underline";
     }
     else {
-        document.getElementById("enemyTurn").style.fontWeight = "bold";
+        document.getElementById("enemyTurn").style.textDecoration = "underline";
     }
 }
 
@@ -276,7 +347,7 @@ function moveUnits(fromNum, toNum){
                 document.getElementById(`units${fromNum}`).innerHTML = playerOneUnits[fromNum];
                 document.getElementById(`units${toNum}`).innerHTML = playerOneUnits[toNum];
                 document.getElementById(`units${toNum}`).style.background = "lime";
-                areas[toNum].style.background = "green";
+                areas[toNum].style.backgroundColor = "rgba(35, 165, 33, 0.5)";
             }
             else{
                 //if we attack
@@ -295,7 +366,7 @@ function moveUnits(fromNum, toNum){
                         document.getElementById(`units${fromNum}`).innerHTML = playerOneUnits[fromNum];
                         document.getElementById(`units${toNum}`).innerHTML = playerOneUnits[toNum];
                         document.getElementById(`units${toNum}`).style.background = "lime";
-                        areas[toNum].style.background = "green";
+                        areas[toNum].style.backgroundColor = "rgba(35, 165, 33, 0.5)";
                     }
                     else if(overall < 0){
                         playerTwoUnits[toNum] = playerTwoUnits[toNum] - movingAmount;
@@ -322,7 +393,7 @@ function moveUnits(fromNum, toNum){
                         document.getElementById(`units${fromNum}`).innerHTML = playerOneUnits[fromNum];
                         document.getElementById(`units${toNum}`).innerHTML = playerOneUnits[toNum];
                         document.getElementById(`units${toNum}`).style.background = "lime";
-                        areas[toNum].style.background = "green";
+                        areas[toNum].style.backgroundColor = "rgba(35, 165, 33, 0.5)";
                     }
                     else if (movingAmount < playerTwoUnits[toNum]){
                         playerTwoUnits[toNum] = playerTwoUnits[toNum] - movingAmount;
@@ -366,7 +437,7 @@ function moveUnits(fromNum, toNum){
                 document.getElementById(`units${fromNum}`).innerHTML = playerTwoUnits[fromNum];
                 document.getElementById(`units${toNum}`).innerHTML = playerTwoUnits[toNum];
                 document.getElementById(`units${toNum}`).style.background = "#FD7A7A";
-                areas[toNum].style.background = "red";
+                areas[toNum].style.backgroundColor = "rgba(255, 0, 0, 0.5)";
             }
             //if we attack
             else{
@@ -385,7 +456,7 @@ function moveUnits(fromNum, toNum){
                         document.getElementById(`units${fromNum}`).innerHTML = playerTwoUnits[fromNum];
                         document.getElementById(`units${toNum}`).innerHTML = playerTwoUnits[toNum];
                         document.getElementById(`units${toNum}`).style.background = "#FD7A7A";
-                        areas[toNum].style.background = "red";
+                        areas[toNum].style.backgroundColor = "rgba(255, 0, 0, 0.5)";
                     }
                     else if(overall < 0){
                         playerOneUnits[toNum] = playerOneUnits[toNum] - movingAmount;
@@ -412,7 +483,7 @@ function moveUnits(fromNum, toNum){
                         document.getElementById(`units${fromNum}`).innerHTML = playerTwoUnits[fromNum];
                         document.getElementById(`units${toNum}`).innerHTML = playerTwoUnits[toNum];
                         document.getElementById(`units${toNum}`).style.background = "#FD7A7A";
-                        areas[toNum].style.background = "red";
+                        areas[toNum].style.backgroundColor = "rgba(255, 0, 0, 0.5)";
                     }
                     else if (movingAmount < playerOneUnits[toNum]){
                         playerOneUnits[toNum] = playerOneUnits[toNum] - movingAmount;
@@ -459,16 +530,16 @@ function checkOperations(numOfOperations, turnNum){
         //changing turn
         if(turnNum == 0){
             playerTurn = 1;
-            document.getElementById("yourTurn").style.fontWeight = "normal";
-            document.getElementById("enemyTurn").style.fontWeight = "bold";
+            document.getElementById("yourTurn").style.textDecoration = "none";
+            document.getElementById("enemyTurn").style.textDecoration = "underline";
             playerTwoOperations = 3;
             document.getElementById("moveNum").innerHTML = playerTwoOperations;
             document.getElementById("fundsValue").innerHTML = playerTwoFunds;
         }
         if(turnNum == 1){
             playerTurn = 0;
-            document.getElementById("yourTurn").style.fontWeight = "bold";
-            document.getElementById("enemyTurn").style.fontWeight = "normal";
+            document.getElementById("yourTurn").style.textDecoration = "underline";
+            document.getElementById("enemyTurn").style.textDecoration = "none";
             playerOneOperations = 3;
             document.getElementById("moveNum").innerHTML = playerOneOperations;
             document.getElementById("fundsValue").innerHTML = playerOneFunds;
