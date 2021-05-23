@@ -1,16 +1,4 @@
-
 var areas = document.querySelectorAll(".area");
-var ready = false;
-var map = document.querySelector(".map");
-var areaOccupation = [];
-var playerOneUnits = [];
-var playerTwoUnits = [];
-var playerOneBases = [];
-var playerTwoBases = [];
-var playerOneFunds = 1000;
-var playerTwoFunds = 1000;
-var playerOneOperations = 3;
-var playerTwoOperations = 3;
 var playerTurn = 0;
 var selectedAreaNum = 0;
 var availableAreas = [];
@@ -19,28 +7,230 @@ var availableAreas = [];
 var socket = io();
 var playerId;
 socket.on('player-index', index => {
-    console.log(index);
     playerId = index;
     if(parseInt(index) == -1){
         document.getElementById("readyBtn").disabled = true;
+        alert("Serwer jest pełny !");
         window.location = "lobby.html";
     }
 });
 
 socket.on('player-connection', (connectedPlayers, playersReady) => {
-    //console.log(index);
     setConnectionStatus(connectedPlayers, playersReady);
 });
 
-socket.on('player-disconnect', connectedPlayers => {
-    //console.log(index);
-    setDisconnectionStatus(connectedPlayers);
+socket.on('player-disconnect', (connectedPlayers, playersReady) => {
+    setDisconnectionStatus(connectedPlayers, playersReady);
 });
 
 //set ready icons
 socket.on('player-ready' , playersReady => {
     setReadyStatus(playersReady);
 });
+//set the map for game start
+socket.on('game-start', function(){
+    setMap();
+});
+
+//set style for first player turn notification
+socket.on('player-turn', index => {
+    if(index == playerId) {
+        document.getElementById("yourTurn").style.textDecoration = "underline";
+    }
+    else {
+        document.getElementById("enemyTurn").style.textDecoration = "underline";
+    }
+    playerTurn = index;
+});
+//show messages to players
+socket.on('message', msg => {
+    alert(msg);
+});
+
+//show win info to players and move to lobby
+socket.on('win-msg', msg => {
+    alert(msg);
+    window.location = "lobby.html";
+});
+//update unit amount on map
+socket.on('buy-units-update', (index, unitsAmount, fundsAmount, areaNum) => {
+    document.getElementById(`units${areaNum}`).innerHTML = unitsAmount;
+    if(playerId == index){
+        document.getElementById("fundsValue").innerHTML = fundsAmount;
+    }
+    areas[areaNum].style.boxShadow = "none";
+});
+//update turn notification
+socket.on('change-turn', (newTurn, operations, funds) => {
+    if(newTurn == playerId){
+        document.getElementById("moveNum").innerHTML = operations;
+        document.getElementById("fundsValue").innerHTML = funds;
+        document.getElementById("yourTurn").style.textDecoration = "underline";
+        document.getElementById("enemyTurn").style.textDecoration = "none";
+    }
+    else {
+        document.getElementById("yourTurn").style.textDecoration = "none";
+        document.getElementById("enemyTurn").style.textDecoration = "underline";
+    }
+    playerTurn = newTurn;
+});
+//update operations counter for clients
+socket.on('operations-update', (index, operations) => {
+    if(index == playerId){
+        document.getElementById("moveNum").innerHTML = operations;
+    }
+});
+//update the visuals on buying a base
+socket.on('buy-base-update', (index, funds, areaNum) => {
+    document.getElementById(`base${areaNum}`).innerHTML = "<img src='assets/base.png' id='icon'>";
+    if(index == playerId){
+        document.getElementById("fundsValue").innerHTML = funds;
+    }
+    areas[areaNum].style.boxShadow = "none";
+});
+//update the visuals on available areas to move units
+socket.on('set-available-areas-update', (index, availableAreas, areaCase, areaNum) => {
+    if(index == playerId){
+        if(areaCase == 1){
+            for(i in availableAreas){
+                areas[availableAreas[i]].style.boxShadow = "inset 0px 0px 27px 24px rgba(44,247,255,0.66)";
+                areas[availableAreas[i]].setAttribute("onclick", `moveUnits(${areaNum}, ${availableAreas[i]})`);
+            }
+        }
+        else{
+            for(i in availableAreas){
+                if(availableAreas[i] >= 0 && availableAreas[i] <= 49){
+                    areas[availableAreas[i]].style.boxShadow = "inset 0px 0px 27px 24px rgba(44,247,255,0.66)";
+                    areas[availableAreas[i]].setAttribute("onclick", `moveUnits(${areaNum}, ${availableAreas[i]})`);
+                }
+            }
+        }
+    }
+});
+
+socket.on('move-units-update', (index, fromNum, toNum, oneUnitsFrom, oneUnitsTo, twoUnitsFrom, twoUnitsTo, action, hasBase, unitSituation) => {
+    if(index == 0){
+        if(action == 0){
+            document.getElementById(`units${fromNum}`).innerHTML = oneUnitsFrom;
+            document.getElementById(`units${toNum}`).innerHTML = oneUnitsTo;
+            cancelMoving();
+        }
+        else if(action == 1){
+            document.getElementById(`units${fromNum}`).innerHTML = oneUnitsFrom;
+            document.getElementById(`units${toNum}`).innerHTML = oneUnitsTo;
+            document.getElementById(`units${toNum}`).style.background = "lime";
+            areas[toNum].style.backgroundColor = "rgba(35, 165, 33, 0.5)";
+            cancelMoving();
+        }
+        else if(action == 2){
+            if(hasBase == true){
+                if(unitSituation == 0){
+                    document.getElementById(`units${fromNum}`).innerHTML = oneUnitsFrom;
+                    document.getElementById(`units${toNum}`).innerHTML = oneUnitsTo;
+                    document.getElementById(`units${toNum}`).style.background = "lime";
+                    areas[toNum].style.backgroundColor = "rgba(35, 165, 33, 0.5)";
+                    cancelMoving();
+                }
+                else if(unitSituation == 1){
+                    document.getElementById(`units${fromNum}`).innerHTML = oneUnitsFrom;
+                    document.getElementById(`units${toNum}`).innerHTML = oneUnitsTo;
+                    cancelMoving();
+                }
+                else{
+                    document.getElementById(`base${toNum}`).innerHTML = "BASE_IMG";
+                    document.getElementById(`units${toNum}`).innerHTML = twoUnitsTo;
+                    document.getElementById(`units${fromNum}`).innerHTML = oneUnitsFrom;
+                    document.getElementById(`units${toNum}`).style.background = "none";
+                    areas[toNum].style.background = "#144703";
+                    cancelMoving();
+                }
+            }
+            else {
+                if(unitSituation == 0){
+                    document.getElementById(`units${fromNum}`).innerHTML = oneUnitsFrom;
+                    document.getElementById(`units${toNum}`).innerHTML = oneUnitsTo;
+                    document.getElementById(`units${toNum}`).style.background = "lime";
+                    areas[toNum].style.backgroundColor = "rgba(35, 165, 33, 0.5)";
+                    cancelMoving();
+                }
+                else if(unitSituation == 1){
+                    document.getElementById(`units${fromNum}`).innerHTML = oneUnitsFrom;
+                    document.getElementById(`units${toNum}`).innerHTML = twoUnitsTo;
+                    cancelMoving();
+                }
+                else{
+                    document.getElementById(`units${toNum}`).innerHTML = twoUnitsTo;
+                    document.getElementById(`units${fromNum}`).innerHTML = oneUnitsFrom;
+                    document.getElementById(`units${toNum}`).style.background = "none";
+                    areas[toNum].style.background = "#144703";
+                    cancelMoving();
+                }
+            }
+        }
+    }
+    else {
+        if(action == 0){
+            document.getElementById(`units${fromNum}`).innerHTML = twoUnitsFrom;
+            document.getElementById(`units${toNum}`).innerHTML = twoUnitsTo;
+            cancelMoving();
+        }
+        else if(action == 1){
+            document.getElementById(`units${fromNum}`).innerHTML = twoUnitsFrom;
+            document.getElementById(`units${toNum}`).innerHTML = twoUnitsTo;
+            document.getElementById(`units${toNum}`).style.background = "#FD7A7A";
+            areas[toNum].style.backgroundColor = "rgba(255, 0, 0, 0.5)";
+            cancelMoving();
+        }
+        else if (action == 2) {
+            if(hasBase == true){
+                if(unitSituation == 0){
+                    document.getElementById(`units${fromNum}`).innerHTML = twoUnitsFrom;
+                    document.getElementById(`units${toNum}`).innerHTML = twoUnitsTo;
+                    document.getElementById(`units${toNum}`).style.background = "#FD7A7A";
+                    areas[toNum].style.backgroundColor = "rgba(255, 0, 0, 0.5)";
+                    cancelMoving();
+                }
+                else if(unitSituation == 1){
+                    document.getElementById(`units${fromNum}`).innerHTML = twoUnitsFrom;
+                    document.getElementById(`units${toNum}`).innerHTML = oneUnitsTo;
+                    cancelMoving();
+                }
+                else {
+                    document.getElementById(`base${toNum}`).innerHTML = "BASE_IMG";
+                    document.getElementById(`units${toNum}`).innerHTML = oneUnitsTo;
+                    document.getElementById(`units${fromNum}`).innerHTML = twoUnitsFrom;
+                    document.getElementById(`units${toNum}`).style.background = "none";
+                    areas[toNum].style.background = "#144703";
+                    cancelMoving();
+                }
+            }
+            else {
+                if(unitSituation == 0){
+                    document.getElementById(`units${fromNum}`).innerHTML = twoUnitsFrom;
+                    document.getElementById(`units${toNum}`).innerHTML = twoUnitsTo;
+                    document.getElementById(`units${toNum}`).style.background = "#FD7A7A";
+                    areas[toNum].style.backgroundColor = "rgba(255, 0, 0, 0.5)";
+                    cancelMoving();
+                }
+                else if(unitSituation == 1){
+                    document.getElementById(`units${fromNum}`).innerHTML = twoUnitsFrom;
+                    document.getElementById(`units${toNum}`).innerHTML = oneUnitsTo;
+                    cancelMoving();
+                }
+                else{
+                    document.getElementById(`units${fromNum}`).innerHTML = twoUnitsFrom;
+                    document.getElementById(`units${toNum}`).innerHTML = oneUnitsTo;
+                    document.getElementById(`units${toNum}`).style.background = "none";
+                    areas[toNum].style.background = "#144703";
+                    cancelMoving();
+                }
+            }
+        }
+    }
+});
+//------------------------server functions above---------------------
+
+
 
 //two functions below that change visuals depending on connection or disconnection
 function setConnectionStatus(connectedPlayers, playersReady){
@@ -73,7 +263,7 @@ function setConnectionStatus(connectedPlayers, playersReady){
     }
 }
 
-function setDisconnectionStatus(connectedPlayers){
+function setDisconnectionStatus(connectedPlayers, playersReady){
     if(connectedPlayers[0] == null){
         document.getElementById("playerOneStatusIconConnection").innerHTML = "<img src='assets/notReady.png' id='notReadyIcon'>";
         document.getElementById("playerOneStatusIconReady").innerHTML = "<img src='assets/notReady.png' id='notReadyIcon'>";
@@ -81,6 +271,9 @@ function setDisconnectionStatus(connectedPlayers){
     if(connectedPlayers[1] == null){
         document.getElementById("playerTwoStatusIconConnection").innerHTML = "<img src='assets/notReady.png' id='notReadyIcon'>";
         document.getElementById("playerTwoStatusIconReady").innerHTML = "<img src='assets/notReady.png' id='notReadyIcon'>";
+    }
+    if(playersReady[0] == true && playersReady[1] == true){
+        alert("Twój przeciwnik opuścił grę");
     }
 }
 
@@ -96,9 +289,7 @@ function setReadyStatus(playersReady){
 
 function setReady(){
     socket.emit('playerReady', playerId);
-    //ready = true;
     document.getElementById("readyBtn").disabled = true;
-    //setMap(); --> move logic to server soon
 }
 
 function setMap(){
@@ -115,37 +306,8 @@ function setMap(){
     areas[20].style.backgroundColor = "rgba(35, 165, 33, 0.5)";
     areas[29].style.backgroundColor = "rgba(255, 0, 0, 0.5)";
 
-    document.getElementById("moveNum").innerHTML = playerOneOperations;
-    
-
-    for(var i=0; i<50; i++){
-        playerOneBases[i] = 0;
-        playerTwoBases[i] = 0;
-        if(i==20){
-            playerOneUnits[i] = 1000;
-            playerTwoUnits[i] = 0;
-            areaOccupation[i] = "g";
-        }
-        else if (i==29){
-            playerTwoUnits[i] = 1000;
-            playerOneUnits[i] = 0;
-            areaOccupation[i] = "r";
-        }
-        else{
-            playerOneUnits[i] = 0;
-            playerTwoUnits[i] = 0;
-            areaOccupation[i] = "free";
-        }
-    }
-    document.getElementById("fundsValue").innerHTML = playerOneFunds;
-    playerTurn = Math.round(Math.random());
-
-    if(playerTurn == 0) {
-        document.getElementById("yourTurn").style.textDecoration = "underline";
-    }
-    else {
-        document.getElementById("enemyTurn").style.textDecoration = "underline";
-    }
+    document.getElementById("moveNum").innerHTML = 3;
+    document.getElementById("fundsValue").innerHTML = 1000;
 }
 
 //enable options for clicked area
@@ -175,454 +337,35 @@ function showMenu(areaNum){
 function buyUnits(areaNum){
     let unitAmount = document.getElementById("buyAmount").value;
 
-    console.log(`bought ${unitAmount} units for area ${areaNum}`);
-
     let buyBtn = document.getElementById("buyUnitsBtn");
     buyBtn.disabled = true;
     let buyInput = document.getElementById("buyAmount");
     buyInput.disabled = true;
 
-    if(playerTurn == 0){
-        if(areaOccupation[areaNum] == "g"){
-            let cost = unitAmount*10;
-            if(playerOneFunds-cost < 0){
-                alert("Nie masz wystarczającej liczby funduszy !");
-            }
-            else{
-                playerOneFunds = playerOneFunds - cost;
-                playerOneUnits[areaNum] = parseInt(playerOneUnits[areaNum]) + parseInt(unitAmount);
-                document.getElementById(`units${areaNum}`).innerHTML = playerOneUnits[areaNum];
-                document.getElementById("fundsValue").innerHTML = playerOneFunds;
-
-                playerOneOperations--;
-                document.getElementById("moveNum").innerHTML = playerOneOperations;
-                
-                //function to check operations left here
-                checkOperations(playerOneOperations, playerTurn);
-            }
-        }
-        else{
-            alert("Nie posiadasz tego obszaru !");
-        }
-    }
-    else{
-        if(areaOccupation[areaNum] == "r"){
-            let cost = unitAmount*10;
-            if(playerTwoFunds-cost < 0){
-                alert("Nie masz wystarczającej liczby funduszy !");
-            }
-            else{
-                playerTwoFunds = playerTwoFunds - cost;
-                playerTwoUnits[areaNum] = parseInt(playerTwoUnits[areaNum]) + parseInt(unitAmount);
-                document.getElementById(`units${areaNum}`).innerHTML = playerTwoUnits[areaNum];
-                document.getElementById("fundsValue").innerHTML = playerTwoFunds;
-
-                playerTwoOperations--;
-                document.getElementById("moveNum").innerHTML = playerTwoOperations;
-                
-                //function to check operations left here
-                checkOperations(playerTwoOperations, playerTurn);
-            }
-        }
-        else{
-            alert("Nie posiadasz tego obszaru !");
-        }
-    }
-    areas[areaNum].style.boxShadow = "none";
+    socket.emit('buy-units', playerId, unitAmount, areaNum);
 }
 
 //function that buys base
 function buyBase(areaNum){
-    console.log(`buying base operation for area ${areaNum}`);
-
-    let cost = 500;
-
-    if(playerTurn == 0){
-        if(areaOccupation[areaNum] == "g"){
-            if(playerOneFunds-cost < 0){
-                alert("Nie masz wystarczającej liczby funduszy !");
-            }
-            else{
-                if(playerOneBases[areaNum] == 1){
-                    alert("Na tym obszarze stoi już baza !");
-                }
-                else{
-                    playerOneFunds = playerOneFunds - cost;
-                    playerOneBases[areaNum] = 1;
-                    document.getElementById(`base${areaNum}`).innerHTML = "<img src='assets/base.png' id='icon'>";
-                    document.getElementById("fundsValue").innerHTML = playerOneFunds;
-
-                    playerOneOperations--;
-                    document.getElementById("moveNum").innerHTML = playerOneOperations;
-                    checkOperations(playerOneOperations, playerTurn);
-                }
-            }
-        }
-        else{
-            alert("Nie posiadasz tego obszaru !");
-        }
-    }
-    else{
-        if(areaOccupation[areaNum] == "r"){
-            if(playerTwoFunds-cost < 0){
-                alert("Nie masz wystarczającej liczby funduszy !");
-            }
-            else{
-                if(playerTwoBases[areaNum] == 1){
-                    alert("Na tym obszarze stoi już baza !");
-                }
-                else{
-                    playerTwoFunds = playerTwoFunds - cost;
-                    playerTwoBases[areaNum] = 1;
-                    document.getElementById(`base${areaNum}`).innerHTML = "<img src='assets/base.png' id='icon'>";
-                    document.getElementById("fundsValue").innerHTML = playerTwoFunds;
-
-                    playerTwoOperations--;
-                    document.getElementById("moveNum").innerHTML = playerTwoOperations;
-                    checkOperations(playerTwoOperations, playerTurn);
-                }
-            }
-        }
-        else{
-            alert("Nie posiadasz tego obszaru !");
-        }
-    }
-    areas[areaNum].style.boxShadow = "none";
+    socket.emit('buy-base', playerId, areaNum);
 }
 
 
 //function that sets available areas depending on turn
 function showAvailable(areaNum){
-    console.log(`moving operation for area ${areaNum}`);
-
     let movingAmountInput = document.getElementById("moveAmount");
     movingAmountInput.disabled = false;
-
-    //let availableAreas = [];
-
-    if(playerTurn == 0){
-        if(areaOccupation[areaNum] != "g"){
-            alert("Nie możesz przenosić jednostek z obszaru, którego nie posiadasz !");
-        }
-        else{
-            setAvailableAreas(areaNum);
-        }
-    }
-    else{
-        if(areaOccupation[areaNum] != "r"){
-            alert("Nie możesz przenosić jednostek z obszaru, którego nie posiadasz !");
-        }
-        else{
-            setAvailableAreas(areaNum);
-        }
-    }
+    socket.emit('show-available', playerId, areaNum);
 }
 
 //function that handles unit movement across the map
 function moveUnits(fromNum, toNum){
-    console.log(`Moving units from area ${fromNum} to area ${toNum}`);
-
     let movingAmount = document.getElementById("moveAmount").value;
-
-    if(playerTurn == 0){
-        if(movingAmount > playerOneUnits[fromNum]){
-            alert("Nie posiadasz tyle jednostek do przeniesienia !");
-        }
-        else if(movingAmount == 0){
-            alert("Chcesz przenieść zero jednostek !");
-        }
-        else{
-            //if its ours
-            if(areaOccupation[toNum] == "g"){
-                playerOneUnits[fromNum] = parseInt(playerOneUnits[fromNum]) - parseInt(movingAmount);
-                playerOneUnits[toNum] = parseInt(playerOneUnits[toNum]) + parseInt(movingAmount);
-                document.getElementById(`units${fromNum}`).innerHTML = playerOneUnits[fromNum];
-                document.getElementById(`units${toNum}`).innerHTML = playerOneUnits[toNum];
-            }
-            else if(areaOccupation[toNum] == "free"){
-                //if the area is free
-                playerOneUnits[fromNum] = parseInt(playerOneUnits[fromNum]) - parseInt(movingAmount);
-                playerOneUnits[toNum] = parseInt(playerOneUnits[toNum]) + parseInt(movingAmount);
-                areaOccupation[toNum] = "g";
-                document.getElementById(`units${fromNum}`).innerHTML = playerOneUnits[fromNum];
-                document.getElementById(`units${toNum}`).innerHTML = playerOneUnits[toNum];
-                document.getElementById(`units${toNum}`).style.background = "lime";
-                areas[toNum].style.backgroundColor = "rgba(35, 165, 33, 0.5)";
-            }
-            else{
-                //if we attack
-                playerOneUnits[fromNum] = parseInt(playerOneUnits[fromNum]) - parseInt(movingAmount);
-
-                //check if opponent has base
-                if(playerTwoBases[toNum] == 1){
-                    //count overall value to check the outcome of the attack
-                    overall = movingAmount - (2*playerTwoUnits[toNum]);
-                    if(overall > 0){
-                        areaOccupation[toNum] = "g";
-                        playerTwoBases[toNum] == 0;
-                        playerOneBases[toNum] == 1;
-                        playerOneUnits[toNum] = movingAmount - (2*playerTwoUnits[toNum]);
-                        playerTwoUnits[toNum] = 0;
-                        document.getElementById(`units${fromNum}`).innerHTML = playerOneUnits[fromNum];
-                        document.getElementById(`units${toNum}`).innerHTML = playerOneUnits[toNum];
-                        document.getElementById(`units${toNum}`).style.background = "lime";
-                        areas[toNum].style.backgroundColor = "rgba(35, 165, 33, 0.5)";
-                    }
-                    else if(overall < 0){
-                        playerTwoUnits[toNum] = playerTwoUnits[toNum] - movingAmount;
-                        document.getElementById(`units${fromNum}`).innerHTML = playerOneUnits[fromNum];
-                        document.getElementById(`units${toNum}`).innerHTML = playerTwoUnits[toNum];
-                    }
-                    else{
-                        playerTwoUnits[toNum] = (playerTwoUnits[toNum]*2) - movingAmount;
-                        playerTwoBases[toNum] == 0;
-                        playerOneBases[toNum] == 0;
-                        document.getElementById(`base${toNum}`).innerHTML = "BASE_IMG";
-                        document.getElementById(`units${toNum}`).innerHTML = playerTwoUnits[toNum];
-                        document.getElementById(`units${fromNum}`).innerHTML = playerOneUnits[fromNum];
-                        areaOccupation[toNum] = "free";
-                        document.getElementById(`units${toNum}`).style.background = "none";
-                        areas[toNum].style.background = "#144703";
-                    }
-                }
-                else{
-                    if(movingAmount > playerTwoUnits[toNum]){
-                        areaOccupation[toNum] = "g";
-                        playerOneUnits[toNum] = movingAmount - playerTwoUnits[toNum];
-                        playerTwoUnits[toNum] = 0;
-                        document.getElementById(`units${fromNum}`).innerHTML = playerOneUnits[fromNum];
-                        document.getElementById(`units${toNum}`).innerHTML = playerOneUnits[toNum];
-                        document.getElementById(`units${toNum}`).style.background = "lime";
-                        areas[toNum].style.backgroundColor = "rgba(35, 165, 33, 0.5)";
-                    }
-                    else if (movingAmount < playerTwoUnits[toNum]){
-                        playerTwoUnits[toNum] = playerTwoUnits[toNum] - movingAmount;
-                        document.getElementById(`units${fromNum}`).innerHTML = playerOneUnits[fromNum];
-                        document.getElementById(`units${toNum}`).innerHTML = playerTwoUnits[toNum];
-                    }
-                    else{
-                        playerTwoUnits[toNum] = playerTwoUnits[toNum] - movingAmount;
-                        document.getElementById(`units${toNum}`).innerHTML = playerTwoUnits[toNum];
-                        document.getElementById(`units${fromNum}`).innerHTML = playerOneUnits[fromNum];
-                        areaOccupation[toNum] = "free";
-                        document.getElementById(`units${toNum}`).style.background = "none";
-                        areas[toNum].style.background = "#144703";
-                    }
-                }
-            }
-            playerOneOperations--;
-            document.getElementById("moveNum").innerHTML = playerOneOperations;
-            checkOperations(playerOneOperations, playerTurn);
-        }
-    }
-    else{
-        if(movingAmount > playerTwoUnits[fromNum]){
-            alert("Nie posiadasz tyle jednostek do przeniesienia !");
-        }
-        else if(movingAmount == 0){
-            alert("Chcesz przenieść zero jednostek !");
-        }
-        else{
-            if(areaOccupation[toNum] == "r"){
-                playerTwoUnits[fromNum] = parseInt(playerTwoUnits[fromNum]) - parseInt(movingAmount);
-                playerTwoUnits[toNum] = parseInt(playerTwoUnits[toNum]) + parseInt(movingAmount);
-                document.getElementById(`units${fromNum}`).innerHTML = playerTwoUnits[fromNum];
-                document.getElementById(`units${toNum}`).innerHTML = playerTwoUnits[toNum];
-            }
-            else if(areaOccupation[toNum] == "free"){
-                //if the area is free
-                playerTwoUnits[fromNum] = parseInt(playerTwoUnits[fromNum]) - parseInt(movingAmount);
-                playerTwoUnits[toNum] = parseInt(playerTwoUnits[toNum]) + parseInt(movingAmount);
-                areaOccupation[toNum] = "r";
-                document.getElementById(`units${fromNum}`).innerHTML = playerTwoUnits[fromNum];
-                document.getElementById(`units${toNum}`).innerHTML = playerTwoUnits[toNum];
-                document.getElementById(`units${toNum}`).style.background = "#FD7A7A";
-                areas[toNum].style.backgroundColor = "rgba(255, 0, 0, 0.5)";
-            }
-            //if we attack
-            else{
-                playerTwoUnits[fromNum] = parseInt(playerTwoUnits[fromNum]) - parseInt(movingAmount);
-
-                //check if opponent has base
-                if(playerOneBases[toNum] == 1){
-                    //count overall value to check the outcome of the attack
-                    overall = movingAmount - (2*playerOneUnits[toNum]);
-                    if(overall > 0){
-                        areaOccupation[toNum] = "r";
-                        playerTwoBases[toNum] == 1;
-                        playerOneBases[toNum] == 0;
-                        playerTwoUnits[toNum] = movingAmount - (2*playerOneUnits[toNum]);
-                        playerOneUnits[toNum] = 0;
-                        document.getElementById(`units${fromNum}`).innerHTML = playerTwoUnits[fromNum];
-                        document.getElementById(`units${toNum}`).innerHTML = playerTwoUnits[toNum];
-                        document.getElementById(`units${toNum}`).style.background = "#FD7A7A";
-                        areas[toNum].style.backgroundColor = "rgba(255, 0, 0, 0.5)";
-                    }
-                    else if(overall < 0){
-                        playerOneUnits[toNum] = playerOneUnits[toNum] - movingAmount;
-                        document.getElementById(`units${fromNum}`).innerHTML = playerTwoUnits[fromNum];
-                        document.getElementById(`units${toNum}`).innerHTML = playerOneUnits[toNum];
-                    }
-                    else{
-                        playerOneUnits[toNum] = (playerOneUnits[toNum]*2) - movingAmount;
-                        playerTwoBases[toNum] == 0;
-                        playerOneBases[toNum] == 0;
-                        document.getElementById(`base${toNum}`).innerHTML = "BASE_IMG";
-                        document.getElementById(`units${toNum}`).innerHTML = playerOneUnits[toNum];
-                        document.getElementById(`units${fromNum}`).innerHTML = playerTwoUnits[fromNum];
-                        areaOccupation[toNum] = "free";
-                        document.getElementById(`units${toNum}`).style.background = "none";
-                        areas[toNum].style.background = "#144703";
-                    }
-                }
-                else{
-                    if(movingAmount > playerOneUnits[toNum]){
-                        areaOccupation[toNum] = "r";
-                        playerTwoUnits[toNum] = movingAmount - playerOneUnits[toNum];
-                        playerOneUnits[toNum] = 0;
-                        document.getElementById(`units${fromNum}`).innerHTML = playerTwoUnits[fromNum];
-                        document.getElementById(`units${toNum}`).innerHTML = playerTwoUnits[toNum];
-                        document.getElementById(`units${toNum}`).style.background = "#FD7A7A";
-                        areas[toNum].style.backgroundColor = "rgba(255, 0, 0, 0.5)";
-                    }
-                    else if (movingAmount < playerOneUnits[toNum]){
-                        playerOneUnits[toNum] = playerOneUnits[toNum] - movingAmount;
-                        document.getElementById(`units${fromNum}`).innerHTML = playerTwoUnits[fromNum];
-                        document.getElementById(`units${toNum}`).innerHTML = playerOneUnits[toNum];
-                    }
-                    else{
-                        playerOneUnits[toNum] = playerOneUnits[toNum] - movingAmount;
-                        document.getElementById(`units${fromNum}`).innerHTML = playerTwoUnits[fromNum];
-                        document.getElementById(`units${toNum}`).innerHTML = playerOneUnits[toNum];
-                        areaOccupation[toNum] = "free";
-                        document.getElementById(`units${toNum}`).style.background = "none";
-                        areas[toNum].style.background = "#144703";
-                    }
-                }
-            }
-            playerTwoOperations--;
-            document.getElementById("moveNum").innerHTML = playerTwoOperations;
-            checkOperations(playerTwoOperations, playerTurn);
-        }
-    }
-    checkWin();
+    socket.emit('move-units', playerId, fromNum, toNum, movingAmount);
     for(i in availableAreas){
         if(availableAreas[i] < 50 && availableAreas[i] > 0){
             areas[availableAreas[i]].style.boxShadow = "none";
             areas[availableAreas[i]].setAttribute("onclick", `showMenu(${availableAreas[i]})`);
-        }
-    }
-}
-
-//function that changes the turn if needed
-function checkOperations(numOfOperations, turnNum){
-    if(numOfOperations == 0){
-        //passive fund income given every turn
-        let playerOneIncome = 0;
-        let playerTwoIncome = 0;
-        for(var i=0; i<50; i++){
-            if(areaOccupation[i] == "g"){ playerOneIncome += 25};
-            if(areaOccupation[i] == "r"){ playerTwoIncome += 25};
-        }
-        playerOneFunds += playerOneIncome;
-        playerTwoFunds += playerTwoIncome;
-
-        //changing turn
-        if(turnNum == 0){
-            playerTurn = 1;
-            document.getElementById("yourTurn").style.textDecoration = "none";
-            document.getElementById("enemyTurn").style.textDecoration = "underline";
-            playerTwoOperations = 3;
-            document.getElementById("moveNum").innerHTML = playerTwoOperations;
-            document.getElementById("fundsValue").innerHTML = playerTwoFunds;
-        }
-        if(turnNum == 1){
-            playerTurn = 0;
-            document.getElementById("yourTurn").style.textDecoration = "underline";
-            document.getElementById("enemyTurn").style.textDecoration = "none";
-            playerOneOperations = 3;
-            document.getElementById("moveNum").innerHTML = playerOneOperations;
-            document.getElementById("fundsValue").innerHTML = playerOneFunds;
-        }
-    }
-}
-
-//function that picks the available areas to move units
-function setAvailableAreas(areaNum){
-
-    availableAreas = [];
-    if(areaNum == 0){
-        availableAreas.push(areaNum+11);
-        availableAreas.push(areaNum+10);
-        availableAreas.push(areaNum+1);
-        for(i in availableAreas){
-            areas[availableAreas[i]].style.boxShadow = "inset 0px 0px 27px 24px rgba(44,247,255,0.66)";
-            areas[availableAreas[i]].setAttribute("onclick", `moveUnits(${areaNum}, ${availableAreas[i]})`);
-        }
-    }
-    else if(areaNum == 40){
-        availableAreas.push(areaNum-10);
-        availableAreas.push(areaNum-9);
-        availableAreas.push(areaNum+1);
-        for(i in availableAreas){
-            areas[availableAreas[i]].style.boxShadow = "inset 0px 0px 27px 24px rgba(44,247,255,0.66)";
-            areas[availableAreas[i]].setAttribute("onclick", `moveUnits(${areaNum}, ${availableAreas[i]})`);
-        }
-    }
-    else if(areaNum == 10 || areaNum == 20 || areaNum == 30){
-        availableAreas.push(areaNum-10);
-        availableAreas.push(areaNum-9);
-        availableAreas.push(areaNum+1);
-        availableAreas.push(areaNum+10);
-        availableAreas.push(areaNum+11);
-        for(i in availableAreas){
-            areas[availableAreas[i]].style.boxShadow = "inset 0px 0px 27px 24px rgba(44,247,255,0.66)";
-            areas[availableAreas[i]].setAttribute("onclick", `moveUnits(${areaNum}, ${availableAreas[i]})`);
-        }
-    }
-    else if(areaNum == 19 || areaNum == 29 || areaNum == 39){
-        availableAreas.push(areaNum-10);
-        availableAreas.push(areaNum+9);
-        availableAreas.push(areaNum-1);
-        availableAreas.push(areaNum+10);
-        availableAreas.push(areaNum-11);
-        for(i in availableAreas){
-            areas[availableAreas[i]].style.boxShadow = "inset 0px 0px 27px 24px rgba(44,247,255,0.66)";
-            areas[availableAreas[i]].setAttribute("onclick", `moveUnits(${areaNum}, ${availableAreas[i]})`);
-        }
-    }
-    else if(areaNum == 9){
-        availableAreas.push(areaNum+10);
-        availableAreas.push(areaNum+9);
-        availableAreas.push(areaNum-1);
-        for(i in availableAreas){
-            areas[availableAreas[i]].style.boxShadow = "inset 0px 0px 27px 24px rgba(44,247,255,0.66)";
-            areas[availableAreas[i]].setAttribute("onclick", `moveUnits(${areaNum}, ${availableAreas[i]})`);
-        }
-    }
-    else if(areaNum == 49){
-        availableAreas.push(areaNum-10);
-        availableAreas.push(areaNum-11);
-        availableAreas.push(areaNum-1);
-        for(i in availableAreas){
-            areas[availableAreas[i]].style.boxShadow = "inset 0px 0px 27px 24px rgba(44,247,255,0.66)";
-            areas[availableAreas[i]].setAttribute("onclick", `moveUnits(${areaNum}, ${availableAreas[i]})`);
-        }
-    }
-    else{
-        availableAreas.push(areaNum-10);
-        availableAreas.push(areaNum+10);
-        availableAreas.push(areaNum-11);
-        availableAreas.push(areaNum+11);
-        availableAreas.push(areaNum+9);
-        availableAreas.push(areaNum-9);
-        availableAreas.push(areaNum+1);
-        availableAreas.push(areaNum-1);
-        for(i in availableAreas){
-            if(availableAreas[i] >= 0 && availableAreas[i] <= 49){
-                areas[availableAreas[i]].style.boxShadow = "inset 0px 0px 27px 24px rgba(44,247,255,0.66)";
-                areas[availableAreas[i]].setAttribute("onclick", `moveUnits(${areaNum}, ${availableAreas[i]})`);
-            }
         }
     }
 }
@@ -633,19 +376,4 @@ function cancelMoving(){
         areas[i].style.boxShadow = "none";
         areas[i].setAttribute("onclick", `showMenu(${i})`);
     }
-}
-
-//function that checks if there is a winner
-function checkWin(){
-    let winner = "n";
-    let playerOneAmount = 0;
-    let playerTwoAmount = 0;
-    for(var i=0; i<50; i++){
-        if(areaOccupation[i] == "g"){ playerOneAmount++ };
-        if(areaOccupation[i] == "r"){ playerTwoAmount++ };
-    }
-    if(playerOneAmount == 50){ console.log("green wins")}
-    else if(playerTwoAmount == 50){ console.log("red wins")}
-    else if(playerOneAmount == 0){ console.log("red wins") }
-    else if(playerTwoAmount == 0){ console.log("green wins") }
 }
