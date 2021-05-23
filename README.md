@@ -12,8 +12,8 @@
  **Serwer**
  
  - [x] Stworzenie podstaw serwera i obsługa połączeń graczy **3.05**
- - [ ] Integracja stworzonej gry z serwerem **24.05**
+ - [x] Integracja stworzonej gry z serwerem **24.05**
  
  **Dodatkowo**
  
- - [ ] Szlify wizualne oraz testowanie i naprawa ewentualnych bugów **8.06**
+ - [ ] Szlify wizualne oraz testowanie i naprawa ewentualnych bugów **1.06**
