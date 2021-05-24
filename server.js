@@ -54,7 +54,9 @@ io.on('connection', (socket) => {
         console.log(`Player ${playerIndex} has disconnected`);
         serverConnections[playerIndex] = null;
 
-        io.emit('player-disconnect', serverConnections, playersReady);
+        if(playerIndex != -1){
+            io.emit('player-disconnect', serverConnections, playersReady);
+        }
         playersReady[playerIndex] = false;
     });
 

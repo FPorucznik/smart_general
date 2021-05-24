@@ -7,7 +7,7 @@ body {
     height: 100px;
     color: white;
     text-align: center;
-    background-image: url("assets/title.png");
+    background-color: black;
     font-family: 'Stardos Stencil', cursive;
 }
 
@@ -23,7 +23,7 @@ body {
 
 .playerOneStatus {
     float: left;
-    width: 10%;
+    width: 20%;
     margin-left: 5%;
 }
 
@@ -65,21 +65,15 @@ body {
     transition: transform .2s;
 }
 
-/*
-.map > div:hover {
-    box-shadow: 0px 0px 7px 7px #000000;
-    transform: scale(1.1); 
-}*/
-
 .playerTwoStatus {
     float: right;
-    width: 10%;
+    width: 20%;
     margin-right: 5%;
 }
 
 .title {
     float: left;
-    width: 70%;
+    width: 50%;
     margin: auto;
 }
 
@@ -89,10 +83,62 @@ body {
 }
 
 #funds, #moveInfo {
-    padding-right: 30px;
+    padding: 5px;
+    background-color: black;
+    border-radius: 25px;
+    font-size: 20px;
 }
 
 #readyIcon , #notReadyIcon {
     width: 20x;
     height: 15px;
+}
+
+#moveInfo {
+    margin-right: 100px;
+}
+#heading {
+    font-size: 40px;
+    text-shadow: 0px 0px 14px #20C108;
+}
+
+#yourTurn, #enemyTurn {
+    background-color: black;
+    border-radius: 25px;
+    font-size: 20px;
+    padding: 5px;
+}
+
+#buyUnitsBtn, #moveUnitsBtn, #buyBaseBtn {
+    color: black !important;
+    font-weight: bold;
+	text-transform: uppercase;
+	text-decoration: none;
+	background: lightgray;
+    margin-right: 15px;
+	border-radius: 5px;
+	display: inline-block;
+	border: 2px solid black;
+	transition: all 0.4s ease 0s;
+}
+
+#buyUnitsBtn:hover, #moveUnitsBtn:hover, #buyBaseBtn:hover {
+	background: white;
+    cursor: pointer;
+	letter-spacing: 1px;
+	-webkit-box-shadow: 0px 5px 40px -10px rgba(0,0,0,0.57);
+	-moz-box-shadow: 0px 5px 40px -10px rgba(0,0,0,0.57);
+	box-shadow: 5px 40px -10px rgba(0,0,0,0.57);
+	transition: all 0.4s ease 0s;
+}
+
+#buyAmount, #moveAmount {
+    width: 50px;
+    margin-right: 50px;
+}
+
+#colorInfo {
+    font-size: 15px;
+    margin-left: 40px;
+    padding: 4px;
 }

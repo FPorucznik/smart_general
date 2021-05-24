@@ -35,10 +35,12 @@ socket.on('game-start', function(){
 //set style for first player turn notification
 socket.on('player-turn', index => {
     if(index == playerId) {
-        document.getElementById("yourTurn").style.textDecoration = "underline";
+        //document.getElementById("yourTurn").style.textDecoration = "underline";
+        document.getElementById("yourTurn").style.border= "2px solid yellow";
     }
     else {
-        document.getElementById("enemyTurn").style.textDecoration = "underline";
+        //document.getElementById("enemyTurn").style.textDecoration = "underline";
+        document.getElementById("enemyTurn").style.border = "2px solid yellow";
     }
     playerTurn = index;
 });
@@ -50,7 +52,9 @@ socket.on('message', msg => {
 //show win info to players and move to lobby
 socket.on('win-msg', msg => {
     alert(msg);
-    window.location = "lobby.html";
+    window.setTimeout(function(){
+        window.location.href = "lobby.html";
+    }, 4000);
 });
 //update unit amount on map
 socket.on('buy-units-update', (index, unitsAmount, fundsAmount, areaNum) => {
@@ -65,12 +69,12 @@ socket.on('change-turn', (newTurn, operations, funds) => {
     if(newTurn == playerId){
         document.getElementById("moveNum").innerHTML = operations;
         document.getElementById("fundsValue").innerHTML = funds;
-        document.getElementById("yourTurn").style.textDecoration = "underline";
-        document.getElementById("enemyTurn").style.textDecoration = "none";
+        document.getElementById("yourTurn").style.border = "2px solid yellow";
+        document.getElementById("enemyTurn").style.border = "none";
     }
     else {
-        document.getElementById("yourTurn").style.textDecoration = "none";
-        document.getElementById("enemyTurn").style.textDecoration = "underline";
+        document.getElementById("yourTurn").style.border = "none";
+        document.getElementById("enemyTurn").style.border = "2px solid yellow";
     }
     playerTurn = newTurn;
 });
@@ -274,6 +278,9 @@ function setDisconnectionStatus(connectedPlayers, playersReady){
     }
     if(playersReady[0] == true && playersReady[1] == true){
         alert("Twój przeciwnik opuścił grę");
+        window.setTimeout(function(){
+            window.location.href = "lobby.html";
+        }, 3000);
     }
 }
 
@@ -308,6 +315,19 @@ function setMap(){
 
     document.getElementById("moveNum").innerHTML = 3;
     document.getElementById("fundsValue").innerHTML = 1000;
+
+    if(playerId == 0){
+        document.getElementById("colorInfo").innerHTML = "Jesteś zielonymi";
+        document.getElementById("colorInfo").style.color = "lime";
+        document.getElementById("colorInfo").style.borderRadius = "25px";
+        document.getElementById("colorInfo").style.backgroundColor = "black";
+    }
+    else{
+        document.getElementById("colorInfo").innerHTML = "Jesteś czerwonymi";
+        document.getElementById("colorInfo").style.color = "red";
+        document.getElementById("colorInfo").style.borderRadius = "25px";
+        document.getElementById("colorInfo").style.backgroundColor = "black";
+    }
 }
 
 //enable options for clicked area
