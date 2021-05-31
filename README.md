@@ -16,4 +16,6 @@
  
  **Dodatkowo**
  
- - [ ] Szlify wizualne oraz testowanie i naprawa ewentualnych bugów **1.06**
+ - [x] Szlify wizualne oraz testowanie i naprawa ewentualnych bugów **1.06**
+ 
+ **Projekt oficjalnie zakończony**
