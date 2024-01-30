@@ -14,6 +14,7 @@ Smart General is a multiplayer game that works in the browser and it provides ga
 - javascript
 - express 4.17.1
 - socket.io 4.0.0
+- HTML, CSS
 
 ## Local setup guide
 
