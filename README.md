@@ -28,6 +28,7 @@ npm install
 node server
 ```
 **Go to http://localhost:2000 on two seperate tabs in browser to simulate two players joining**
+
 **Enjoy !**
 
 Demo gameplay screenshot:
